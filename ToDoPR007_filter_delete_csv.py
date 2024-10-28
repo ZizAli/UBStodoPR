@@ -96,6 +96,37 @@ class TaskManager:
             summary[task.category] = summary.get(task.category, 0) + task.duration
         return summary
 
+    def edit_task(self, task_name):
+        for task in self.tasks:
+            if task.name == task_name:
+                print(f"Editing task: {task}")
+                task.name = input("Enter new task name (or press Enter to keep the same): ") or task.name
+                date_input = input("Enter new task date (YYYY-MM-DD) or press Enter to keep the same: ")
+                if date_input:
+                    task.date = datetime.strptime(date_input, "%Y-%m-%d").date()
+                duration_input = input("Enter new duration (minutes) or press Enter to keep the same: ")
+                if duration_input:
+                    task.duration = int(duration_input)
+                task.comments = input("Enter new comments or press Enter to keep the same: ") or task.comments
+                task.category = TaskIO().get_valid_enum_input("Enter new category (work/personal/social/other): ",
+                                                              TaskCategory) or task.category
+                task.status = TaskIO().get_valid_enum_input("Enter new status (pending/in progress/done): ",
+                                                            TaskStatus) or task.status
+                print(f"Task updated: {task}")
+                return True
+        print("Task not found.")
+        return False
+
+    def delete_task(self, task_name):
+        initial_count = len(self.tasks)
+        self.tasks = [task for task in self.tasks if task.name != task_name]
+        if len(self.tasks) < initial_count:
+            print(f"Task '{task_name}' deleted.")
+            return True
+        else:
+            print("Task not found.")
+            return False
+
 
 class TaskIO:
     def get_valid_enum_input(self, prompt, enum_class):
@@ -136,43 +167,39 @@ def main():
     task_manager.load_tasks_from_csv(csv_file_name)
 
     while True:
-        command = input("Type 'exit' to quit, 'add' to add a task, or 'inspect' to inspect tasks: ").strip().lower()
+        command = input(
+            "Type 'exit' to quit, 'add' to add a task, 'inspect' to inspect tasks, 'edit' to edit a task, 'delete' to delete a task: ").strip().lower()
         if command == 'exit':
             print("Exiting the program.")
             break
         elif command == 'add':
             task = TaskIO().get_task_from_input()
             task_manager.add_task(task)
-
             TaskIO().write_tasks_to_csv(task_manager.tasks, csv_file_name)
-
         elif command == 'inspect':
             task_manager.load_tasks_from_csv(csv_file_name)
-
             date_range = input(
                 "Which time frame would you like to inspect? (today/this week/this month): ").strip().lower()
             category_input = input(
                 "Enter category to filter by (work/personal/social/other or press Enter to skip): ").strip()
-            category = None
-            if category_input:
-                try:
-                    category = TaskCategory[category_input.lower()]
-                except KeyError:
-                    print(
-                        f"Invalid category '{category_input}'. Please enter a valid category (work/personal/social/other).")
-
+            category = TaskCategory[category_input.lower()] if category_input else None
             filtered_tasks = task_manager.filter_tasks(date_range, category)
             if filtered_tasks:
-                print(f"Tasks for {date_range}{' in category: ' + category.value if category else ''}:")
                 for task in filtered_tasks:
                     print(task)
             else:
-                print(f"No tasks found for {date_range}{' in category: ' + (category.value if category else 'N/A')}.")
-
+                print("No tasks found.")
             summary = task_manager.summarize_duration_by_category(date_range)
-            print("Category Duration Summary:")
             for cat, duration in summary.items():
                 print(f"Category: {cat.value}, Total Duration: {duration} min")
+        elif command == 'edit':
+            task_name = input("Enter the name of the task to edit: ").strip()
+            if task_manager.edit_task(task_name):
+                TaskIO().write_tasks_to_csv(task_manager.tasks, csv_file_name)
+        elif command == 'delete':
+            task_name = input("Enter the name of the task to delete: ").strip()
+            if task_manager.delete_task(task_name):
+                TaskIO().write_tasks_to_csv(task_manager.tasks, csv_file_name)
 
 
 if __name__ == "__main__":
