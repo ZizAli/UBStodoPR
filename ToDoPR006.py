@@ -74,6 +74,7 @@ class TaskManager:
         self.tasks.append(task)
 
     def load_tasks_from_csv(self, filename):
+       #program is not loading from csv file
         self.tasks.clear()
         if os.path.exists(filename):
             with open(filename, mode='r') as file:
