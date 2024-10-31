@@ -1,206 +1,157 @@
 import csv
-from enum import Enum
-import os
 from datetime import datetime, timedelta
 
 
-class TaskStatus(Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in progress"
-    DONE = "done"
-
-
-class TaskCategory(Enum):
-    WORK = "work"
-    PERSONAL = "personal"
-    SOCIAL = "social"
-    OTHER = "other"
-
-
-class Task:
-    def __init__(self, name, date, duration, comments, category: TaskCategory, status: TaskStatus):
+class Event:
+    def __init__(self, name, date, comments, category, notifications):
         self.name = name
-        self.date = datetime.strptime(date, "%Y-%m-%d").date()
-        self.duration = int(duration)
+        self.date = date
         self.comments = comments
         self.category = category
-        self.status = status
+        self.notifications = notifications
 
-    def __repr__(self):
-        return (f"[Name: {self.name}] [Date: {self.date}] [Duration: {self.duration} min] "
-                f"[Comments: {self.comments}] [Category: {self.category.value}] [Status: {self.status.value}]")
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'date': self.date.strftime('%d-%m-%Y %H:%M'),
+            'comments': self.comments,
+            'category': self.category,
+            'notifications': self.notifications
+        }
 
 
-class TaskManager:
-    def __init__(self):
-        self.tasks = []
+class EventManager:
+    def __init__(self, filename='events.csv'):
+        self.filename = filename
+        self.events = self.load_events()
 
-    def add_task(self, task):
-        self.tasks.append(task)
-
-    def load_tasks_from_csv(self, filename):
-        self.tasks.clear()
-        if os.path.exists(filename):
-            with open(filename, mode='r') as file:
+    def load_events(self):
+        events = []
+        try:
+            with open(self.filename, mode='r', newline='') as file:
                 reader = csv.DictReader(file)
-                expected_headers = {'Name', 'Date', 'Duration', 'Comments', 'Category', 'Status'}
-
-                if not expected_headers.issubset(reader.fieldnames):
-                    print(f"Error: CSV file is missing required headers.")
-                    return
-
                 for row in reader:
-                    try:
-                        task = Task(
-                            name=row['Name'],
-                            date=row['Date'],
-                            duration=row['Duration'],
-                            comments=row['Comments'],
-                            category=TaskCategory[row['Category'].upper()],
-                            status=TaskStatus[row['Status'].upper()]
-                        )
-                        self.add_task(task)
-                    except KeyError as e:
-                        print(f"KeyError: {e}. Check that the CSV has the correct headers.")
-                        break
-                    except ValueError as e:
-                        print(f"ValueError in parsing data: {e}. Check date format and field values.")
-                        break
+                    row['date'] = datetime.strptime(row['date'], '%d-%m-%Y %H:%M')
+                    events.append(
+                        Event(row['name'], row['date'], row['comments'], row['category'], row['notifications']))
+        except FileNotFoundError:
+            pass
+        return events
 
-    def filter_tasks(self, date_range: str, category: TaskCategory = None):
-        now = datetime.now().date()
+    def save_events(self):
+        with open(self.filename, mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=['name', 'date', 'comments', 'category', 'notifications'])
+            writer.writeheader()
+            for event in self.events:
+                writer.writerow(event.to_dict())
 
-        if date_range == "today":
-            start_date = end_date = now
-        elif date_range == "this week":
-            start_date = now - timedelta(days=now.weekday())
-            end_date = start_date + timedelta(days=6)
-        elif date_range == "this month":
-            start_date = now.replace(day=1)
-            next_month = now.replace(day=28) + timedelta(days=4)
-            end_date = next_month.replace(day=1) - timedelta(days=1)
+    def add_event(self, name, date, comments, category, notifications):
+        event = Event(name, date, comments, category, notifications)
+        self.events.append(event)
+        self.save_events()
+
+    def edit_event(self, index, **kwargs):
+        for key, value in kwargs.items():
+            if value is not None:
+                setattr(self.events[index], key, value)
+        self.save_events()
+
+    def remove_event(self, index):
+        del self.events[index]
+        self.save_events()
+
+    def filter_events(self, timeframe, category=None):
+        now = datetime.now()
+
+
+        if timeframe == 'today':
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = now.replace(hour=23, minute=59, second=59)
+        elif timeframe == 'this_week':
+            start = now - timedelta(days=now.weekday())
+            end = start + timedelta(days=6, hours=23, minutes=59, seconds=59)
+        elif timeframe == 'this_month':
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            end = (start + timedelta(days=31)).replace(day=1) - timedelta(seconds=1)
         else:
-            print("Invalid date range specified.")
             return []
 
-        filtered_tasks = [
-            task for task in self.tasks
-            if start_date <= task.date <= end_date and (not category or task.category == category)
-        ]
-        return filtered_tasks
+        filtered_events = [event for event in self.events if start <= event.date <= end]
+        return [event for event in filtered_events if event.category == category] if category else filtered_events
 
-    def summarize_duration_by_category(self, date_range: str):
-        filtered_tasks = self.filter_tasks(date_range)
-        summary = {}
-        for task in filtered_tasks:
-            summary[task.category] = summary.get(task.category, 0) + task.duration
-        return summary
-
-    def edit_task(self, task_name):
-        for task in self.tasks:
-            if task.name == task_name:
-                print(f"Editing task: {task}")
-                task.name = input("Enter new task name (or press Enter to keep the same): ") or task.name
-                date_input = input("Enter new task date (YYYY-MM-DD) or press Enter to keep the same: ")
-                if date_input:
-                    task.date = datetime.strptime(date_input, "%Y-%m-%d").date()
-                duration_input = input("Enter new duration (minutes) or press Enter to keep the same: ")
-                if duration_input:
-                    task.duration = int(duration_input)
-                task.comments = input("Enter new comments or press Enter to keep the same: ") or task.comments
-                task.category = TaskIO().get_valid_enum_input("Enter new category (work/personal/social/other): ",
-                                                              TaskCategory) or task.category
-                task.status = TaskIO().get_valid_enum_input("Enter new status (pending/in progress/done): ",
-                                                            TaskStatus) or task.status
-                print(f"Task updated: {task}")
-                return True
-        print("Task not found.")
-        return False
-
-    def delete_task(self, task_name):
-        initial_count = len(self.tasks)
-        self.tasks = [task for task in self.tasks if task.name != task_name]
-        if len(self.tasks) < initial_count:
-            print(f"Task '{task_name}' deleted.")
-            return True
-        else:
-            print("Task not found.")
-            return False
-
-
-class TaskIO:
-    def get_valid_enum_input(self, prompt, enum_class):
-        valid_options = [e.value for e in enum_class]
-        while True:
-            user_input = input(prompt).strip().lower()
-            if user_input in valid_options:
-                return enum_class(next(e for e in enum_class if e.value == user_input))
-            print(f"Invalid input! Please choose from: {', '.join(valid_options)}.")
-
-    def get_task_from_input(self):
-        name = input("Enter task name: ").strip()
-        date = input("Enter task date (YYYY-MM-DD): ").strip()
-        duration = input("Enter task duration in minutes: ").strip()
-        comments = input("Enter comments: ").strip()
-        category = self.get_valid_enum_input("Enter category (work/personal/social/other): ", TaskCategory)
-        status = self.get_valid_enum_input("Enter task status (pending/in progress/done): ", TaskStatus)
-        return Task(name, date, duration, comments, category, status)
-
-    def write_tasks_to_csv(self, tasks, filename):
-        try:
-            with open(filename, mode='w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(['Name', 'Date', 'Duration', 'Comments', 'Category', 'Status'])
-                for task in tasks:
-                    writer.writerow(
-                        [task.name, task.date, task.duration, task.comments, task.category.value, task.status.value])
-            print(f"Tasks have been saved to {filename}.")
-        except Exception as e:
-            print(f"Error writing to CSV: {e}")
+    def list_events(self):
+        return self.events
 
 
 def main():
-    print("My ToDo List Project")
-    task_manager = TaskManager()
-    csv_file_name = 'Mytask.csv'
-
-    task_manager.load_tasks_from_csv(csv_file_name)
+    manager = EventManager()
 
     while True:
-        command = input(
-            "Type 'exit' to quit, 'add' to add a task, 'inspect' to inspect tasks, 'edit' to edit a task, 'delete' to delete a task: ").strip().lower()
-        if command == 'exit':
-            print("Exiting the program.")
-            break
-        elif command == 'add':
-            task = TaskIO().get_task_from_input()
-            task_manager.add_task(task)
-            TaskIO().write_tasks_to_csv(task_manager.tasks, csv_file_name)
-        elif command == 'inspect':
-            task_manager.load_tasks_from_csv(csv_file_name)
-            date_range = input(
-                "Which time frame would you like to inspect? (today/this week/this month): ").strip().lower()
-            category_input = input(
-                "Enter category to filter by (work/personal/social/other or press Enter to skip): ").strip()
-            category = TaskCategory[category_input.lower()] if category_input else None
-            filtered_tasks = task_manager.filter_tasks(date_range, category)
-            if filtered_tasks:
-                for task in filtered_tasks:
-                    print(task)
+        print("\nOptions: add, edit, remove, list, filter, exit")
+        option = input("Choose an option: ").strip().lower()
+
+        if option == 'add':
+            name = input("Event name: ")
+            date_str = input("Event date (DD-MM-YYYY HH:MM): ")
+            try:
+                date = datetime.strptime(date_str, '%d-%m-%Y %H:%M')
+            except ValueError:
+                print("Invalid date format. Please try again.")
+                continue
+            comments = input("Comments: ")
+            category = input("Category: ")
+            notifications = input("Notifications: ")
+            manager.add_event(name, date, comments, category, notifications)
+
+        elif option == 'edit':
+            index = int(input("Event index to edit: "))
+            if index < 0 or index >= len(manager.events):
+                print("Invalid index. Please try again.")
+                continue
+
+            name = input("New event name (leave blank for no change): ") or None
+            date_str = input("New event date (leave blank for no change, DD-MM-YYYY HH:MM): ")
+            date = datetime.strptime(date_str, '%d-%m-%Y %H:%M') if date_str else None
+            comments = input("New comments (leave blank for no change): ") or None
+            category = input("New category (leave blank for no change): ") or None
+            notifications = input("New notifications (leave blank for no change): ") or None
+            manager.edit_event(index, name=name, date=date, comments=comments, category=category,
+                               notifications=notifications)
+
+        elif option == 'remove':
+            index = int(input("Event index to remove: "))
+            if index < 0 or index >= len(manager.events):
+                print("Invalid index. Please try again.")
+                continue
+            manager.remove_event(index)
+
+        elif option == 'list':
+            events = manager.list_events()
+            if not events:
+                print("No events found.")
             else:
-                print("No tasks found.")
-            summary = task_manager.summarize_duration_by_category(date_range)
-            for cat, duration in summary.items():
-                print(f"Category: {cat.value}, Total Duration: {duration} min")
-        elif command == 'edit':
-            task_name = input("Enter the name of the task to edit: ").strip()
-            if task_manager.edit_task(task_name):
-                TaskIO().write_tasks_to_csv(task_manager.tasks, csv_file_name)
-        elif command == 'delete':
-            task_name = input("Enter the name of the task to delete: ").strip()
-            if task_manager.delete_task(task_name):
-                TaskIO().write_tasks_to_csv(task_manager.tasks, csv_file_name)
+                for idx, event in enumerate(events):
+                    print(f"[{idx}] {event.name} - {event.date} - {event.category}")
+
+        elif option == 'filter':
+            while True:
+                timeframe = input("Timeframe (today, this_week, this_month): ").strip().lower()
+                category = input("Category (leave blank for all): ").strip()
+
+                if timeframe in ['today', 'this_week', 'this_month']:
+                    events = manager.filter_events(timeframe, category or None)
+                    if not events:
+                        print("No events found for the specified criteria.")
+                    else:
+                        for event in events:
+                            print(f"{event.name} - {event.date} - {event.category}")
+                    break
+                else:
+                    print("Invalid timeframe. Please try again.")
+
+        elif option == 'exit':
+            break
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
