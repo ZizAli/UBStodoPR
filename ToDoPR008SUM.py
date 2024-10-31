@@ -63,7 +63,6 @@ class EventManager:
     def filter_events(self, timeframe, category=None):
         now = datetime.now()
 
-        # Set the start and end based on the timeframe
         if timeframe == 'today':
             start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             end = now.replace(hour=23, minute=59, second=59)
@@ -74,7 +73,7 @@ class EventManager:
             start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             end = (start + timedelta(days=31)).replace(day=1) - timedelta(seconds=1)
         else:
-            return []  # Return an empty list if the timeframe is invalid
+            return []
 
         filtered_events = [event for event in self.events if start <= event.date <= end]
         return [event for event in filtered_events if event.category == category] if category else filtered_events
@@ -92,9 +91,8 @@ class EventManager:
             start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             end = (start + timedelta(days=31)).replace(day=1) - timedelta(seconds=1)
         else:
-            return {}  # Return an empty dict if the timeframe is invalid
+            return {}
 
-        # Summarizing the number of events by category
         summary = {}
         for event in self.events:
             if start <= event.date <= end:
@@ -110,7 +108,7 @@ def get_valid_input(prompt, is_date=False):
     while True:
         user_input = input(prompt).strip()
         if not user_input:
-            return None  # Allow leaving blank
+            return None
         if is_date:
             try:
                 return datetime.strptime(user_input, '%d-%m-%Y %H:%M')
