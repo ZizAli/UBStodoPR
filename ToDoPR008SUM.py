@@ -1,7 +1,6 @@
 import csv
 from datetime import datetime, timedelta
 
-
 class Event:
     def __init__(self, name, date, comments, category, notifications):
         self.name = name
