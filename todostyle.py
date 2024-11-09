@@ -2,7 +2,7 @@ import streamlit as st
 import csv
 from datetime import datetime, timedelta
 
-# Define Event and EventManager classes
+
 class Event:
     def __init__(self, name, date, comments, category, notifications):
         self.name = name
@@ -170,15 +170,15 @@ def show_todo_page():
                 for category, count in summary.items():
                     st.write(f"{category}: {count} event(s)")
 
-    # Add a button to go back to the welcome page
+
     if st.button("Back to Welcome Page"):
         st.session_state["page"] = "welcome"
 
-# Initialize session state for page navigation and name
+
 if "page" not in st.session_state:
     st.session_state["page"] = "welcome"
 
-# Display pages based on the current page state
+
 if st.session_state["page"] == "welcome":
     show_welcome_page()
 else:
