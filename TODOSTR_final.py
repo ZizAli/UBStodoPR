@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from PIL import Image
 
 
-
+# First page view
 import streamlit as st
 
 st.markdown("*Our Todolist* is **really** ***cool***.")
@@ -26,7 +26,7 @@ st.markdown(multi)
 
 
 
-# Define Event and EventManager classes
+
 class Event:
     def __init__(self, name, date, comments, category, notifications):
         self.name = name
@@ -119,7 +119,7 @@ class EventManager:
         return summary
 
 
-# Streamlit pages
+
 def show_welcome_page():
     # CSS for background image
     st.markdown(
@@ -224,12 +224,12 @@ def show_todo_page():
                 for category, count in summary.items():
                     st.write(f"{category}: {count} event(s)")
 
-    # Button to go back to the welcome page
+
     if st.button("Back to Welcome Page"):
         st.session_state["page"] = "welcome"
 
 
-# Initialize session state
+
 if "page" not in st.session_state:
     st.session_state["page"] = "welcome"
 if "background_image" not in st.session_state:
@@ -237,7 +237,7 @@ if "background_image" not in st.session_state:
 if "penguin_image" not in st.session_state:
     st.session_state["penguin_image"] = "D:/python/pinguin_53876-57854.jpg"  # Your penguin image path
 
-# Display pages based on the current page state
+
 if st.session_state["page"] == "welcome":
     show_welcome_page()
 else:
