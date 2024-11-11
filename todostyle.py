@@ -1,32 +1,9 @@
 import streamlit as st
 import csv
 from datetime import datetime, timedelta
-from PIL import Image
-
-#
-# # First page view
-# import streamlit as st
-#
-# st.markdown("*Our Todolist* is **really** ***cool***.")
-# st.markdown('''
-#     :red[Welcome to our page. ] :orange[YOU can] :green[write] :blue[your daily] :violet[tasks in]
-#     :gray[different] :rainbow[ways] into the :blue-background[ TODOLIST] app.''')
-# st.markdown("Here's a bouquet &mdash;\
-#             :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
-#
-# multi = '''If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page.
-# There are also options to remove, filter, and summarize.
-#
-# To start, enter your username and then click on the :red[:blue-background[Go to My To-Do List]] button.
-#
-# At the bottom of the page, you can find a link to go :blue-background[Back to the Welcome Page].
-#
-# '''
-# st.markdown(multi)
 
 
-
-
+# Class Definitions for Event and EventManager
 class Event:
     def __init__(self, name, date, comments, category, notifications):
         self.name = name
@@ -119,36 +96,27 @@ class EventManager:
         return summary
 
 
-
+# Page Functions
 def show_welcome_page():
-    # CSS for background image
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("file:///{st.session_state.get('background_image')}");
-            background-size: cover;
-            background-position: center;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("*Our Todolist* is **really** ***cool***.")
+    st.markdown('''
+        :red[Welcome to our page.] :orange[YOU can] :green[write] :blue[your daily] :violet[tasks in]
+        :gray[different] :rainbow[ways] into the :blue-background[ TODOLIST] app.
+    ''')
+    st.markdown("Here's a bouquet &mdash; :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
 
-    st.title("Welcome to Our ToDo Page")
+    multi = '''
+        If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page.
+        There are also options to remove, filter, and summarize.
+
+        To start, enter your username and then click on the :red[Go to My To-Do List] button.
+
+        At the bottom of the page, you can find a link to go :blue-background[Back to the Welcome Page].
+    '''
+    st.markdown(multi)
+
+    # Input and button for navigation
     name = st.text_input("Please add your name:")
-
-
-    # Display penguin image with link
-    st.markdown(
-        f"""
-        <a href="file:///{st.session_state.get('penguin_image')}" target="_blank">
-            <img src="file:///{st.session_state.get('penguin_image')}" alt="Penguin" style="width:80px; position: absolute; top: 10px; right: 10px;">
-        </a>
-        """,
-        unsafe_allow_html=True
-    )
-
     if st.button("Go to My ToDo List"):
         if name:
             st.session_state["name"] = name
@@ -156,38 +124,15 @@ def show_welcome_page():
         else:
             st.warning("Please enter your name to proceed.")
 
-    # First page view
-
-
-import streamlit as st
-
-st.markdown("*Our Todolist* is **really** ***cool***.")
-st.markdown('''
-     :red[Welcome to our page. ] :orange[YOU can] :green[write] :blue[your daily] :violet[tasks in]
-     :gray[different] :rainbow[ways] into the :blue-background[ TODOLIST] app.''')
-st.markdown("Here's a bouquet &mdash;\
-             :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
-
-multi = '''If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page. 
- There are also options to remove, filter, and summarize.
-
- To start, enter your username and then click on the :red[:blue-background[Go to My To-Do List]] button.
-
- At the bottom of the page, you can find a link to go :blue-background[Back to the Welcome Page].
-
- '''
-st.markdown(multi)
-
 
 def show_todo_page():
     st.write(f"Hello {st.session_state.get('name', 'User')}, welcome to your ToDo List!")
     manager = EventManager()
 
-    option = st.sidebar.selectbox("Select an option",
-                                  ["Add Event", "Remove Event", "List Events", "Filter Events", "Summarize Events"])
+    option = st.selectbox("Select an option",
+                          ["Add Event", "Remove Event", "List Events", "Filter Events", "Summarize Events"])
 
     if option == "Add Event":
-        st.header("Add a New Event")
         name = st.text_input("Event Name")
         date = st.date_input("Event Date")
         time = st.time_input("Event Time")
@@ -201,7 +146,6 @@ def show_todo_page():
             st.success("Event added successfully!")
 
     elif option == "Remove Event":
-        st.header("Remove an Event")
         events = manager.events
         if events:
             event_names = [f"{idx}: {event.name} - {event.date} - {event.category}" for idx, event in enumerate(events)]
@@ -214,7 +158,6 @@ def show_todo_page():
             st.write("No events found to remove.")
 
     elif option == "List Events":
-        st.header("Events List")
         events = manager.events
         if not events:
             st.write("No events found.")
@@ -223,7 +166,6 @@ def show_todo_page():
                 st.write(f"{idx}: {event.name} - {event.date} - {event.category}")
 
     elif option == "Filter Events":
-        st.header("Filter Events")
         timeframe = st.selectbox("Timeframe", ["today", "this_week", "this_month"])
         category = st.text_input("Category (leave blank for all)")
 
@@ -236,9 +178,7 @@ def show_todo_page():
                     st.write(f"{event.name} - {event.date} - {event.category}")
 
     elif option == "Summarize Events":
-        st.header("Summarize Events")
         timeframe = st.selectbox("Timeframe", ["today", "this_week", "this_month"])
-
         if st.button("Summarize Events"):
             summary = manager.summarize_events(timeframe)
             if not summary:
@@ -247,19 +187,13 @@ def show_todo_page():
                 for category, count in summary.items():
                     st.write(f"{category}: {count} event(s)")
 
-
     if st.button("Back to Welcome Page"):
         st.session_state["page"] = "welcome"
 
 
-
+# Main Flow
 if "page" not in st.session_state:
     st.session_state["page"] = "welcome"
-if "background_image" not in st.session_state:
-    st.session_state["background_image"] = "background.jpg"  # Your background image path
-if "penguin_image" not in st.session_state:
-    st.session_state["penguin_image"] = "D:/python/pinguin_53876-57854.jpg"  # Your penguin image path
-
 
 if st.session_state["page"] == "welcome":
     show_welcome_page()
