@@ -1,33 +1,79 @@
+
 import streamlit as st
 import csv
+import base64
 from datetime import datetime, timedelta
-from PIL import Image
 
-
-# First page view
 import streamlit as st
+import base64
 
-st.markdown("*Our Todolist* is **really** ***cool***.")
-st.markdown('''
-    :red[Welcome to our page. ] :orange[YOU can] :green[write] :blue[your daily] :violet[tasks in]
-    :gray[different] :rainbow[ways] into the :blue-background[ TODOLIST] app.''')
-st.markdown("Here's a bouquet &mdash;\
-            :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
+# Function to load and encode the image in base64
+def get_base64_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
-multi = '''If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page. 
-There are also options to remove, filter, and summarize.
+# Path to your local image
+image_path = "D:/python/pinguin_53876-57854.jpg"
+encoded_image = get_base64_image(image_path)
 
-To start, enter your username and then click on the :red[:blue-background[Go to My To-Do List]] button.
+# Apply background color and position the image in the top left corner
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-color: #FFFFFF;
+        background-image: url("data:image/jpg;base64,{encoded_image}");
+        background-position:  right;
+        background-repeat: no-repeat;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-At the bottom of the page, you can find a link to go :blue-background[Back to the Welcome Page].
-tereamlit tun TODO_final.py
 
-'''
-st.markdown(multi)
+# # Function to load and encode the image in base64 (optional if using st.image)
+# def get_base64_image(image_path):
+#     with open(image_path, "rb") as img_file:
+#         return base64.b64encode(img_file.read()).decode()
+#
+# # Path to your local penguin image
+# image_path = "pinguin_53876-57854.jpg"  # Ensure the image is in the same directory
+#
+# # Encode the image for background
+# encoded_background = get_base64_image(image_path)
+#
+# # Apply background color and the base64-encoded penguin image using .stApp
+# st.markdown(
+#     f"""
+#     <style>
+#     .stApp {{
+#         background-color: #F0F0F0;
+#         background-image: url("data:image/jpg;base64,{encoded_background}");
+#         background-size: cover;
+#         background-position: center;
+#     }}
+#     </style>
+#     """,
+#     unsafe_allow_html=True
+# )
 
 
 
+# Add the penguin image to the upper-left corner using columns
+def add_upper_left_image(image_path):
+    # Create a single column layout
+    col1, col2 = st.columns([1, 4])  # Adjust column widths as needed
 
+    with col1:
+        st.image(image_path, width=100)  # Adjust width as needed
+    with col2:
+        st.empty()  # Placeholder for alignment
+
+# Call the function to add the image
+add_upper_left_image(image_path)
+
+# Class Definitions for Event and EventManager
 class Event:
     def __init__(self, name, date, comments, category, notifications):
         self.name = name
@@ -44,7 +90,6 @@ class Event:
             'category': self.category,
             'notifications': self.notifications
         }
-
 
 class EventManager:
     def __init__(self, filename='events.csv'):
@@ -119,36 +164,27 @@ class EventManager:
 
         return summary
 
-
-
+# Page Functions
 def show_welcome_page():
-    # CSS for background image
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("file:///{st.session_state.get('background_image')}");
-            background-size: cover;
-            background-position: center;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("*Our Todolist* is **really** ***cool***.")
+    st.markdown('''
+        :red[Welcome to our page.] :orange[YOU can] :green[write] :blue[your daily] :violet[tasks in]
+        :gray[different] :rainbow[ways] into the :blue-background[ TODOLIST] app.
+    ''')
+    st.markdown("Here's a bouquet &mdash; :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
 
-    st.title("Welcome to Our ToDo Page")
+    multi = '''
+        If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page.
+        There are also options to remove, filter, and summarize.
+
+        To start, enter your username and then click on the :red[Go to My To-Do List] button.
+
+        At the bottom of the page, you can find a link to go :blue-background[Back to the Welcome Page].
+    '''
+    st.markdown(multi)
+
+    # Input and button for navigation
     name = st.text_input("Please add your name:")
-
-    # Display penguin image with link
-    st.markdown(
-        f"""
-        <a href="file:///{st.session_state.get('penguin_image')}" target="_blank">
-            <img src="file:///{st.session_state.get('penguin_image')}" alt="Penguin" style="width:80px; position: absolute; top: 10px; right: 10px;">
-        </a>
-        """,
-        unsafe_allow_html=True
-    )
-
     if st.button("Go to My ToDo List"):
         if name:
             st.session_state["name"] = name
@@ -156,16 +192,14 @@ def show_welcome_page():
         else:
             st.warning("Please enter your name to proceed.")
 
-
 def show_todo_page():
     st.write(f"Hello {st.session_state.get('name', 'User')}, welcome to your ToDo List!")
     manager = EventManager()
 
-    option = st.sidebar.selectbox("Select an option",
-                                  ["Add Event", "Remove Event", "List Events", "Filter Events", "Summarize Events"])
+    option = st.selectbox("Select an option",
+                          ["Add Event", "Remove Event", "List Events", "Filter Events", "Summarize Events"])
 
     if option == "Add Event":
-        st.header("Add a New Event")
         name = st.text_input("Event Name")
         date = st.date_input("Event Date")
         time = st.time_input("Event Time")
@@ -179,7 +213,6 @@ def show_todo_page():
             st.success("Event added successfully!")
 
     elif option == "Remove Event":
-        st.header("Remove an Event")
         events = manager.events
         if events:
             event_names = [f"{idx}: {event.name} - {event.date} - {event.category}" for idx, event in enumerate(events)]
@@ -192,7 +225,6 @@ def show_todo_page():
             st.write("No events found to remove.")
 
     elif option == "List Events":
-        st.header("Events List")
         events = manager.events
         if not events:
             st.write("No events found.")
@@ -201,7 +233,6 @@ def show_todo_page():
                 st.write(f"{idx}: {event.name} - {event.date} - {event.category}")
 
     elif option == "Filter Events":
-        st.header("Filter Events")
         timeframe = st.selectbox("Timeframe", ["today", "this_week", "this_month"])
         category = st.text_input("Category (leave blank for all)")
 
@@ -214,9 +245,7 @@ def show_todo_page():
                     st.write(f"{event.name} - {event.date} - {event.category}")
 
     elif option == "Summarize Events":
-        st.header("Summarize Events")
         timeframe = st.selectbox("Timeframe", ["today", "this_week", "this_month"])
-
         if st.button("Summarize Events"):
             summary = manager.summarize_events(timeframe)
             if not summary:
@@ -225,19 +254,12 @@ def show_todo_page():
                 for category, count in summary.items():
                     st.write(f"{category}: {count} event(s)")
 
-
     if st.button("Back to Welcome Page"):
         st.session_state["page"] = "welcome"
 
-
-
+# Main Flow
 if "page" not in st.session_state:
     st.session_state["page"] = "welcome"
-if "background_image" not in st.session_state:
-    st.session_state["background_image"] = "background.jpg"  # Your background image path
-if "penguin_image" not in st.session_state:
-    st.session_state["penguin_image"] = "D:/python/pinguin_53876-57854.jpg"  # Your penguin image path
-
 
 if st.session_state["page"] == "welcome":
     show_welcome_page()

@@ -1,10 +1,36 @@
-#THIS FILE IS FINAL VERSION 
-
 
 import streamlit as st
 import csv
 from datetime import datetime, timedelta
 
+import streamlit as st
+import base64
+
+# Function to load and encode the image in base64
+def get_base64_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+# Path to your local image
+image_path = "D:/python/pinguin_53876-57854.jpg"
+encoded_image = get_base64_image(image_path)
+
+# Apply background color and the base64-encoded penguin image using .stApp
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-color: #F0F0F0;
+        background-image: url("data:image/jpg;base64,{encoded_image}");
+        background-size: cover;
+        background-position: center;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Class Definitions for Event and EventManager
 class Event:
     def __init__(self, name, date, comments, category, notifications):
         self.name = name
@@ -34,7 +60,8 @@ class EventManager:
                 reader = csv.DictReader(file)
                 for row in reader:
                     row['date'] = datetime.strptime(row['date'], '%d-%m-%Y %H:%M')
-                    events.append(Event(row['name'], row['date'], row['comments'], row['category'], row['notifications']))
+                    events.append(
+                        Event(row['name'], row['date'], row['comments'], row['category'], row['notifications']))
         except FileNotFoundError:
             pass
         return events
@@ -94,15 +121,42 @@ class EventManager:
 
         return summary
 
-# Streamlit app
-def main():
-    st.title("My TODO List")
+# Page Functions
+def show_welcome_page():
+    st.markdown("*Our Todolist* is **really** ***cool***.")
+    st.markdown('''
+        :red[Welcome to our page.] :orange[YOU can] :green[write] :blue[your daily] :violet[tasks in]
+        :gray[different] :rainbow[ways] into the :blue-background[ TODOLIST] app.
+    ''')
+    st.markdown("Here's a bouquet &mdash; :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
+
+    multi = '''
+        If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page.
+        There are also options to remove, filter, and summarize.
+
+        To start, enter your username and then click on the :red[Go to My To-Do List] button.
+
+        At the bottom of the page, you can find a link to go :blue-background[Back to the Welcome Page].
+    '''
+    st.markdown(multi)
+
+    # Input and button for navigation
+    name = st.text_input("Please add your name:")
+    if st.button("Go to My ToDo List"):
+        if name:
+            st.session_state["name"] = name
+            st.session_state["page"] = "todo"
+        else:
+            st.warning("Please enter your name to proceed.")
+
+def show_todo_page():
+    st.write(f"Hello {st.session_state.get('name', 'User')}, welcome to your ToDo List!")
     manager = EventManager()
 
-    option = st.sidebar.selectbox("Select an option", ["Add Event", "Remove Event", "List Events", "Filter Events", "Summarize Events"])
+    option = st.selectbox("Select an option",
+                          ["Add Event", "Remove Event", "List Events", "Filter Events", "Summarize Events"])
 
     if option == "Add Event":
-        st.header("Add a New Event")
         name = st.text_input("Event Name")
         date = st.date_input("Event Date")
         time = st.time_input("Event Time")
@@ -114,11 +168,11 @@ def main():
             event_date = datetime.combine(date, time)
             manager.add_event(name, event_date, comments, category, notifications)
             st.success("Event added successfully!")
+
     elif option == "Remove Event":
-        st.header("Remove an Event")
         events = manager.events
         if events:
-            event_names = [f"{idx}: {event.name} - {event.date} - {event.category}" for idx, event in enumerate(events)]
+            event_names = [f"{idx}: {event.name} - {event.date.strftime('%d-%m-%Y %H:%M')} - {event.category}" for idx, event in enumerate(events)]
             event_to_remove = st.selectbox("Select an event to remove", event_names)
             index = int(event_to_remove.split(":")[0])
             if st.button("Remove Event"):
@@ -128,16 +182,14 @@ def main():
             st.write("No events found to remove.")
 
     elif option == "List Events":
-        st.header("Events List")
         events = manager.events
         if not events:
             st.write("No events found.")
         else:
             for idx, event in enumerate(events):
-                st.write(f"{idx}: {event.name} - {event.date} - {event.category}")
+                st.write(f"{idx}: {event.name} - {event.date.strftime('%d-%m-%Y %H:%M')} - {event.category}")
 
     elif option == "Filter Events":
-        st.header("Filter Events")
         timeframe = st.selectbox("Timeframe", ["today", "this_week", "this_month"])
         category = st.text_input("Category (leave blank for all)")
 
@@ -147,12 +199,10 @@ def main():
                 st.write("No events found for the specified criteria.")
             else:
                 for event in filtered_events:
-                    st.write(f"{event.name} - {event.date} - {event.category}")
+                    st.write(f"{event.name} - {event.date.strftime('%d-%m-%Y %H:%M')} - {event.category}")
 
     elif option == "Summarize Events":
-        st.header("Summarize Events")
         timeframe = st.selectbox("Timeframe", ["today", "this_week", "this_month"])
-
         if st.button("Summarize Events"):
             summary = manager.summarize_events(timeframe)
             if not summary:
@@ -161,5 +211,14 @@ def main():
                 for category, count in summary.items():
                     st.write(f"{category}: {count} event(s)")
 
-if __name__ == '__main__':
-    main()
+    if st.button("Back to Welcome Page"):
+        st.session_state["page"] = "welcome"
+
+# Main Flow
+if "page" not in st.session_state:
+    st.session_state["page"] = "welcome"
+
+if st.session_state["page"] == "welcome":
+    show_welcome_page()
+else:
+    show_todo_page()
