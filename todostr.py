@@ -11,26 +11,27 @@ def get_base64_image(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-# Path to your local image
-image_path = "D:/python/pinguin_53876-57854.jpg"
+
+image_path = "pinpin.jpg"
 encoded_image = get_base64_image(image_path)
 
-# Apply background color and the base64-encoded penguin image using .stApp
+# Apply background color and photo
 st.markdown(
     f"""
     <style>
     .stApp {{
-        background-color: #F0F0F0;
+        background-color: #c0f6fb;
         background-image: url("data:image/jpg;base64,{encoded_image}");
-        background-size: cover;
+        background-size: 55% 100%;
         background-position: center;
+        background-repeat: no-repeat;
     }}
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Class Definitions for Event and EventManager
+# Class for Event and EventManager
 class Event:
     def __init__(self, name, date, comments, category, notifications):
         self.name = name
