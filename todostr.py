@@ -1,5 +1,5 @@
 
-import streamlit as st
+# import streamlit as st
 import csv
 from datetime import datetime, timedelta
 
@@ -22,8 +22,8 @@ st.markdown(
     .stApp {{
         background-color: #c0f6fb;
         background-image: url("data:image/jpg;base64,{encoded_image}");
-        background-size: 55% 100%;
-        background-position: center;
+        background-size: 40% 100%;
+        background-position: right;
         background-repeat: no-repeat;
     }}
     </style>
@@ -124,14 +124,16 @@ class EventManager:
 
 # Page Functions
 def show_welcome_page():
-    st.markdown("*Our Todolist* is **really** ***cool***.")
-    st.markdown('''
+    col1, _ = st.columns([2, 1])
+    with col1:
+        st.markdown("*Our Todolist* is **really** ***cool***.")
+        st.markdown('''
         :red[Welcome to our page.] :orange[YOU can] :green[write] :blue[your daily] :violet[tasks in]
         :gray[different] :rainbow[ways] into the :blue-background[ TODOLIST] app.
     ''')
-    st.markdown("Here's a bouquet &mdash; :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
+        st.markdown("Here's a bouquet &mdash; :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
 
-    multi = '''
+        multi = '''
         If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page.
         There are also options to remove, filter, and summarize.
 
@@ -139,7 +141,7 @@ def show_welcome_page():
 
         At the bottom of the page, you can find a link to go :blue-background[Back to the Welcome Page].
     '''
-    st.markdown(multi)
+        st.markdown(multi)
 
     # Input and button for navigation
     name = st.text_input("Please add your name:")
