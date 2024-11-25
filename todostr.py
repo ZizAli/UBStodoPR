@@ -153,8 +153,10 @@ def show_welcome_page():
             st.warning("Please enter your name to proceed.")
 
 def show_todo_page():
-    st.write(f"Hello {st.session_state.get('name', 'User')}, welcome to your ToDo List!")
-    manager = EventManager()
+    col2, _ = st.columns([2, 1])
+    with col2:
+        st.write(f"Hello {st.session_state.get('name', 'User')}, welcome to your ToDo List!")
+        manager = EventManager()
 
     option = st.selectbox("Select an option",
                           ["Add Event", "Remove Event", "List Events", "Filter Events", "Summarize Events"])
