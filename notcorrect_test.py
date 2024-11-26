@@ -53,7 +53,7 @@ class TestEventManager(unittest.TestCase):
         )
         manager.save_events()
         mock_file().write.assert_called()
-
+#
     def test_add_event(self):
         manager = EventManager()
         manager.add_event(
