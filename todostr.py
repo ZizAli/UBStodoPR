@@ -1,21 +1,18 @@
 
-# import streamlit as st
 import csv
 from datetime import datetime, timedelta
 
 import streamlit as st
 import base64
 
-# Function to load and encode the image in base64
 def get_base64_image(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-
 image_path = "pinpin.jpg"
 encoded_image = get_base64_image(image_path)
 
-# Apply background color and photo
+
 st.markdown(
     f"""
     <style>

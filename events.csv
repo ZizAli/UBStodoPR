@@ -1,6 +1,4 @@
 name,date,comments,category,notifications
-Work Task,22-11-2024 15:13,Task details,Work,Email
-Personal Task,22-11-2024 15:13,Personal task details,Personal,None
 Meeting,22-11-2024 15:00,Discuss project,Work,Email
 Today Event,22-11-2024 15:15,Today's task,Work,Email
 Meeting,22-11-2024 15:00,Discuss project,Work,Email
@@ -76,3 +74,13 @@ Today Event,24-11-2024 17:14,Today's task,Work,Email
 Meeting,22-11-2024 15:00,Discuss project,Work,Email
 Work Task,24-11-2024 17:14,Task details,Work,Email
 Personal Task,24-11-2024 17:14,Personal task details,Personal,None
+Meeting,22-11-2024 15:00,Discuss project,Work,Email
+Today Event,26-11-2024 10:01,Today's task,Work,Email
+Meeting,22-11-2024 15:00,Discuss project,Work,Email
+Work Task,26-11-2024 10:01,Task details,Work,Email
+Personal Task,26-11-2024 10:01,Personal task details,Personal,None
+Meeting,22-11-2024 15:00,Discuss project,Work,Email
+Today Event,26-11-2024 10:02,Today's task,Work,Email
+Meeting,22-11-2024 15:00,Discuss project,Work,Email
+Work Task,26-11-2024 10:02,Task details,Work,Email
+Personal Task,26-11-2024 10:02,Personal task details,Personal,None
