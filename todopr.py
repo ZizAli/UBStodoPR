@@ -56,32 +56,6 @@ class EventManager:
         self.events.append(event)
         self.save_events()
 
-    def summarize_events(self, timeframe):
-        now = datetime.now()
-        summary = {}
-
-        # Define the time range based on the selected timeframe
-        if timeframe == "today":
-            start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_time = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-        elif timeframe == "this_week":
-            start_time = now - timedelta(days=now.weekday())  # Start of this week (Monday)
-            end_time = start_time + timedelta(days=6, hours=23, minutes=59, seconds=59)
-        elif timeframe == "this_month":
-            start_time = datetime(now.year, now.month, 1)  # First day of this month
-            end_time = datetime(now.year, now.month, 1) + timedelta(days=31)  # Rough end of the month
-            end_time = end_time.replace(hour=23, minute=59, second=59, microsecond=999999)
-
-        # Filter events within the time range
-        for event in self.events:
-            if start_time <= event.date <= end_time:
-                category = event.category
-                if category not in summary:
-                    summary[category] = 0
-                summary[category] += 1
-
-        return summary
-
 
 def show_welcome_page(image_path):
     image_path1 = "pinguin_53876-57854.jpg"
@@ -122,17 +96,6 @@ def show_welcome_page(image_path):
         )
 
 def show_todo_page(image_path):
-    # Add custom CSS to change background color
-    st.markdown(
-        """
-        <style>
-        .stApp {
-            background-color: #CAEEED;  /* Light blue background */
-        }
-        </style>
-        """, unsafe_allow_html=True
-    )
-
     col1, col2 = st.columns([1.5, 1])
 
     with col1:
