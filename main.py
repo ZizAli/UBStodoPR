@@ -56,9 +56,36 @@ class EventManager:
         self.events.append(event)
         self.save_events()
 
-# Page Functions
+    def summarize_events(self, timeframe):
+        now = datetime.now()
+        summary = {}
+
+        # Define the time range based on the selected timeframe
+        if timeframe == "today":
+            start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_time = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif timeframe == "this_week":
+            start_time = now - timedelta(days=now.weekday())  # Start of this week (Monday)
+            end_time = start_time + timedelta(days=6, hours=23, minutes=59, seconds=59)
+        elif timeframe == "this_month":
+            start_time = datetime(now.year, now.month, 1)  # First day of this month
+            end_time = datetime(now.year, now.month, 1) + timedelta(days=31)  # Rough end of the month
+            end_time = end_time.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # Filter events within the time range
+        for event in self.events:
+            if start_time <= event.date <= end_time:
+                category = event.category
+                if category not in summary:
+                    summary[category] = 0
+                summary[category] += 1
+
+        return summary
+
+
 def show_welcome_page(image_path):
-    col1, col2 = st.columns([1.5, 1])  # Adjust column ratio: left (text) : right (image)
+    image_path1 = "pinguin_53876-57854.jpg"
+    col1, col2 = st.columns([1.5, 1])
 
     with col1:
         st.title("Welcome to the ToDo List App!")
@@ -88,14 +115,25 @@ def show_welcome_page(image_path):
                 st.warning("Please enter your name to proceed.")
 
     with col2:
-        encoded_image = get_base64_image(image_path)
+        encoded_image = get_base64_image(image_path1)
         st.markdown(
             f'<img src="data:image/jpg;base64,{encoded_image}" alt="Penguin" style="width:100%; height:auto;">',
             unsafe_allow_html=True,
         )
 
 def show_todo_page(image_path):
-    col1, col2 = st.columns([1.5, 1])  # Left (form) and right (image)
+    # Add custom CSS to change background color
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #CAEEED;  /* Light blue background */
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
+
+    col1, col2 = st.columns([1.5, 1])
 
     with col1:
         st.subheader(f"Hello {st.session_state.get('name', 'User')}, welcome to your ToDo List!")
@@ -165,17 +203,16 @@ def show_todo_page(image_path):
     with col2:
         encoded_image = get_base64_image(image_path)
         st.markdown(
-            f'<img src="data:image/jpg;base64,{encoded_image}" alt="Penguin" style="width:100%; height:auto;">',
+            f'<img src="data:image/jpg;base64,{encoded_image}" alt="Penguin" style="width:100%; height:100%;">',
             unsafe_allow_html=True,
         )
 
-# Main App Logic
 def main():
     st.set_page_config(page_title="ToDo List", layout="wide")
     if "page" not in st.session_state:
         st.session_state["page"] = "welcome"
 
-    image_path = "pinpin.jpg"  # Update with the path to your image
+    image_path = "pinpin.jpg"
     if st.session_state["page"] == "welcome":
         show_welcome_page(image_path)
     elif st.session_state["page"] == "todo":

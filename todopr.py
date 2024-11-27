@@ -59,7 +59,7 @@ class EventManager:
 
 def show_welcome_page(image_path):
     image_path1 = "pinguin_53876-57854.jpg"
-    col1, col2 = st.columns([1.5, 1])  # Adjust column ratio: left (text) : right (image)
+    col1, col2 = st.columns([1.5, 1])
 
     with col1:
         st.title("Welcome to the ToDo List App!")
