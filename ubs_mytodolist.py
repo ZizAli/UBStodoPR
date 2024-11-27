@@ -56,6 +56,34 @@ class EventManager:
         self.events.append(event)
         self.save_events()
 
+    def remove_event(self, index):
+        """Method to remove an event by its index."""
+        if 0 <= index < len(self.events):
+            self.events.pop(index)
+            self.save_events()
+
+    def filter_events(self, timeframe="today", category=""):
+        now = datetime.now()
+        filtered_events = []
+
+        if timeframe == "today":
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=1)
+        elif timeframe == "this_week":
+            start = now - timedelta(days=now.weekday())  # Start of this week (Monday)
+            end = start + timedelta(weeks=1)
+        elif timeframe == "this_month":
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            end = (start.replace(month=start.month % 12 + 1, day=1) if start.month < 12 else start.replace(month=1, year=start.year+1))
+
+        # Filter events based on category and timeframe
+        for event in self.events:
+            if start <= event.date < end:
+                if category.lower() in event.category.lower() if category else True:
+                    filtered_events.append(event)
+
+        return filtered_events
+
     def summarize_events(self, timeframe):
         now = datetime.now()
         summary = {}
@@ -82,7 +110,7 @@ class EventManager:
 
         return summary
 
-
+# Page Functions
 def show_welcome_page(image_path):
     image_path1 = "pinguin_53876-57854.jpg"
     col1, col2 = st.columns([1.5, 1])
@@ -122,7 +150,6 @@ def show_welcome_page(image_path):
         )
 
 def show_todo_page(image_path):
-    # Add custom CSS to change background color
     st.markdown(
         """
         <style>
