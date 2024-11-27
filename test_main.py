@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 from unittest.mock import patch, mock_open
-from todostr import Event, EventManager
+from ubs_mytodolist import Event, EventManager
 
 class TestEvent(unittest.TestCase):
     def test_event_to_dict(self):
