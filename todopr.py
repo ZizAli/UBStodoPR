@@ -1,7 +1,7 @@
-import csv
 from datetime import datetime, timedelta
-import streamlit as st
+import csv
 import base64
+import streamlit as st
 
 # Function to encode an image into base64
 def get_base64_image(image_path):
@@ -39,7 +39,8 @@ class EventManager:
                 for row in reader:
                     row['date'] = datetime.strptime(row['date'], '%d-%m-%Y %H:%M')
                     events.append(
-                        Event(row['name'], row['date'], row['comments'], row['category'], row['notifications']))
+                        Event(row['name'], row['date'], row['comments'], row['category'], row['notifications'])
+                    )
         except FileNotFoundError:
             pass
         return events
@@ -56,6 +57,41 @@ class EventManager:
         self.events.append(event)
         self.save_events()
 
+    # Filter events based on timeframe and category
+    def filter_events(self, timeframe="today", category=""):
+        now = datetime.now()
+        filtered_events = []
+
+        if timeframe == "today":
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=1)
+        elif timeframe == "this_week":
+            start = now - timedelta(days=now.weekday())  # Start of this week (Monday)
+            end = start + timedelta(weeks=1)
+        elif timeframe == "this_month":
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            end = (start.replace(month=start.month % 12 + 1, day=1) if start.month < 12 else start.replace(month=1, year=start.year+1))
+
+        # Filter based on category and timeframe
+        for event in self.events:
+            if start <= event.date < end:
+                if category.lower() in event.category.lower() if category else True:
+                    filtered_events.append(event)
+
+        return filtered_events
+
+# Page Functions
+def add_background_color():
+    st.markdown(
+        """
+        <style>
+            body {
+                background-color: #d2f5fa;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 def show_welcome_page(image_path):
     image_path1 = "pinguin_53876-57854.jpg"
@@ -96,7 +132,7 @@ def show_welcome_page(image_path):
         )
 
 def show_todo_page(image_path):
-    col1, col2 = st.columns([1.5, 1])
+    col1, col2 = st.columns([1.5, 1])  # Left (form) and right (image)
 
     with col1:
         st.subheader(f"Hello {st.session_state.get('name', 'User')}, welcome to your ToDo List!")
@@ -125,7 +161,8 @@ def show_todo_page(image_path):
                 event_to_remove = st.selectbox("Select an event to remove", event_names)
                 index = int(event_to_remove.split(":")[0])
                 if st.button("Remove Event"):
-                    manager.remove_event(index)
+                    manager.events.pop(index)
+                    manager.save_events()
                     st.success("Event removed successfully!")
             else:
                 st.write("No events found to remove.")
@@ -144,21 +181,14 @@ def show_todo_page(image_path):
 
             if st.button("Filter Events"):
                 filtered_events = manager.filter_events(timeframe, category)
-                if not filtered_events:
-                    st.write("No events found for the specified criteria.")
-                else:
+                if filtered_events:
                     for event in filtered_events:
                         st.write(f"{event.name} - {event.date.strftime('%d-%m-%Y %H:%M')} - {event.category}")
+                else:
+                    st.write("No events match the filter criteria.")
 
         elif option == "Summarize Events":
-            timeframe = st.selectbox("Timeframe", ["today", "this_week", "this_month"])
-            if st.button("Summarize Events"):
-                summary = manager.summarize_events(timeframe)
-                if not summary:
-                    st.write("No events found for the specified timeframe.")
-                else:
-                    for category, count in summary.items():
-                        st.write(f"{category}: {count} event(s)")
+            st.write("Summary functionality coming soon!")
 
         if st.button("Back to Welcome Page"):
             st.session_state["page"] = "welcome"
@@ -166,16 +196,18 @@ def show_todo_page(image_path):
     with col2:
         encoded_image = get_base64_image(image_path)
         st.markdown(
-            f'<img src="data:image/jpg;base64,{encoded_image}" alt="Penguin" style="width:100%; height:100%;">',
+            f'<img src="data:image/jpg;base64,{encoded_image}" alt="Penguin" style="width:100%; height:auto;">',
             unsafe_allow_html=True,
         )
 
+# Main App Logic
 def main():
     st.set_page_config(page_title="ToDo List", layout="wide")
     if "page" not in st.session_state:
         st.session_state["page"] = "welcome"
 
-    image_path = "pinpin.jpg"
+    add_background_color()  # Add light blue background color
+    image_path = "pinpin.jpg"  # Update with the path to your image
     if st.session_state["page"] == "welcome":
         show_welcome_page(image_path)
     elif st.session_state["page"] == "todo":
