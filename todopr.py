@@ -175,7 +175,7 @@ def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "welcome"
 
-    image_path = "pinpin.jpg"  # Update with the path to your image
+    image_path = "pinpin.jpg"
     if st.session_state["page"] == "welcome":
         show_welcome_page(image_path)
     elif st.session_state["page"] == "todo":
