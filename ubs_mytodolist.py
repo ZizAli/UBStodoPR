@@ -126,7 +126,7 @@ def show_welcome_page(image_path):
         st.markdown("Here's a bouquet &mdash; :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
 
         multi = '''
-        If you want to add or view the to-do list, you can find it in the Selection Options section on the right side of the page.
+        If you want to add or view the to-do list, you can find it in the Todo page.
         There are also options to remove, filter, and summarize.
 
         To start, enter your username and then click on the :red[Go to My To-Do List] button.
