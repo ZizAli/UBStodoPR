@@ -1,7 +1,8 @@
 import csv
 from datetime import datetime, timedelta
-import streamlit as st
 import base64
+import streamlit as st
+
 
 # Function to encode an image into base64
 def get_base64_image(image_path):
